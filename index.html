@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Ruas e Patas - Salvador</title>
+
+<link rel="icon" type="image/png" href="favicon.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Pacifico&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+  /* Paleta Estilo Minimalista Soft Dark & Laranja */
+  :root {
+    --bg-overlay: rgba(10, 10, 12, 0.88);
+    --surface: #18181b;     
+    --card-bg: rgba(24, 24, 27, 0.75); 
+    --border: rgba(63, 63, 70, 0.4);      
+    --orange-primary: #ff9900; 
+    --orange-hover: #e08800;
+    --text-main: #f4f4f5;   
+    --text-muted: #a1a1aa;  
+    --radius-lg: 16px;
+    --radius-md: 12px;
+    --radius-sm: 8px;
+    
+    --font-title: 'Pacifico', cursive;
+    --font-body: 'Open Sans', sans-serif;
+  }
+
+  * { 
+    margin: 0; 
+    padding: 0; 
+    box-sizing: border-box; 
+    -webkit-tap-highlight-color: transparent; 
+  }
+  
+  body { 
+    background: linear-gradient(var(--bg-overlay), var(--bg-overlay)), url('IMG_20260518_082925.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    color: var(--text-main); 
+    font-family: var(--font-body);
+    min-height: 100vh; 
+    display: flex; 
+    flex-direction: column; 
+    overflow-x: hidden;
+    letter-spacing: -0.2px;
+  }
+  
+  h1, h2, h3, .nav-logo {
+    font-family: var(--font-title);
+    font-weight: normal;
+  }
+
+  /* Header Minimalista - Computador */
+  nav { 
+    position: fixed; 
+    top: 0; 
+    width: 100%; 
+    height: 75px; 
+    background: rgba(10, 10, 12, 0.8); 
+    backdrop-filter: blur(16px); 
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border); 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+    padding: 0 24px; 
+    z-index: 10000; 
+  }
+  
+  .nav-logo-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    max-width: 50%;
+  }
+
+  .nav-logo-img {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+    display: none; 
+  }
+  
+  .nav-logo { 
+    font-size: 1.4rem; 
+    color: var(--text-main); 
+    white-space: nowrap;
+  }
+  .nav-logo span { 
+    color: var(--orange-primary); 
+  }
+  
+  .nav-tabs-container { 
+    display: flex; 
+    gap: 6px; 
+    background: rgba(39, 39, 42, 0.6);
+    padding: 4px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+  }
+  
+  .nav-tab { 
+    padding: 8px 16px; 
+    border-radius: var(--radius-sm); 
+    border: none; 
+    background: transparent; 
+    color: var(--text-muted); 
+    font-family: var(--font-body);
+    font-weight: 600; 
+    font-size: 0.85rem; 
+    cursor: pointer; 
+    transition: all 0.2s ease; 
+  }
+  .nav-tab.active { 
+    background: var(--orange-primary); 
+    color: #000000; 
+  }
+
+  /* Layout de Conteúdo Centralizado */
+  .page { 
+    display: none; 
+    padding: 110px 20px 40px; 
+    max-width: 680px; 
+    margin: 0 auto; 
+    width: 100%; 
+    flex: 1; 
+  }
+  .page.active { 
+    display: block; 
+    animation: smoothFade 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+  }
+  
+  /* Cards de Estilo Arredondado Clean */
+  .card { 
+    background: var(--card-bg); 
+    backdrop-filter: blur(12px); 
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border); 
+    padding: 32px; 
+    border-radius: var(--radius-lg); 
+    margin-bottom: 24px; 
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4); 
+    position: relative; 
+  }
+  
+  /* Inputs Suaves Integrados */
+  input[type="text"], input[type="email"], input[type="password"] { 
+    width: 100%; 
+    padding: 14px 16px; 
+    margin: 8px 0 16px; 
+    border-radius: var(--radius-md); 
+    border: 1px solid var(--border); 
+    background: rgba(10, 10, 12, 0.6); 
+    color: #ffffff; 
+    outline: none; 
+    font-family: var(--font-body);
+    font-size: 0.95rem; 
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focus { 
+    border-color: var(--orange-primary); 
+    box-shadow: 0 0 0 2px rgba(255, 153, 0, 0.2);
+  }
+  
+  input[type="file"] { 
+    background: rgba(10, 10, 12, 0.4); 
+    border: 1px dashed var(--border); 
+    padding: 20px; 
+    width: 100%; 
+    border-radius: var(--radius-md); 
+    color: var(--text-muted); 
+    cursor: pointer; 
+    text-align: center;
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+  }
+
+  /* Botões Fluidos Arredondados */
+  .btn-main { 
+    width: 100%; 
+    padding: 14px; 
+    border: none; 
+    border-radius: var(--radius-md); 
+    background: var(--orange-primary); 
+    color: #000000; 
+    font-family: var(--font-body);
+    font-weight: 700; 
+    cursor: pointer; 
+    font-size: 0.95rem; 
+    transition: all 0.2s ease; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-main:hover { background: var(--orange-hover); }
+  .btn-main:active { transform: scale(0.99); }
+  .btn-main:disabled { background: #27272a; color: #71717a; cursor: not-allowed; }
+  
+  .btn-outline { 
+    background: transparent; 
+    border: 1px solid var(--border); 
+    color: var(--text-main); 
+    margin-bottom: 16px; 
+  }
+  .btn-outline:hover { 
+    border-color: var(--orange-primary); 
+    background: rgba(255, 153, 0, 0.05);
+  }
+  
+  .search-box { display: flex; gap: 8px; margin: 8px 0; }
+  .search-box input { margin: 0; }
+  .btn-search { width: auto; padding: 0 20px; background: var(--text-main); color: #000000; }
+  .btn-search:hover { background: #e4e4e7; }
+
+  .btn-delete { 
+    position: absolute; top: 20px; right: 20px; 
+    background: rgba(239, 68, 68, 0.2); color: #f87171; 
+    border: 1px solid rgba(239, 68, 68, 0.4); padding: 6px 14px; 
+    border-radius: var(--radius-sm); cursor: pointer; 
+    font-family: var(--font-body); font-weight: 600; font-size: 0.75rem; transition: background 0.2s;
+  }
+  .btn-delete:hover { background: rgba(239, 68, 68, 0.4); }
+  
+  #map, #select-location-map { 
+    height: 300px; width: 100%; border-radius: var(--radius-md); margin: 16px 0; border: 1px solid var(--border); z-index: 1; background: #09090b; 
+  }
+  
+  /* Modais / Janelas Suspensas (Interface do ADM) */
+  .modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    z-index: 20000; display: none; align-items: center; justify-content: center; padding: 20px;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal-card {
+    background: #18181b; border: 1px solid var(--border); width: 100%; max-width: 400px;
+    padding: 32px; border-radius: var(--radius-lg); box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+    animation: smoothFade 0.2s ease-out;
+  }
+
+  #toast-container { position: fixed; top: 150px; right: 24px; left: 24px; margin: 0 auto; max-width: 360px; z-index: 11000; pointer-events: none; }
+  .toast { 
+    background: #27272a; color: var(--text-main); border-left: 4px solid var(--orange-primary);
+    padding: 14px 20px; border-radius: var(--radius-sm); font-weight: 600; font-size: 0.85rem;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5); margin-bottom: 8px; animation: slideIn 0.25s ease-out; 
+  }
+  .toast.error { border-left-color: #ef4444; }
+
+  footer { background: rgba(10, 10, 12, 0.95); border-top: 1px solid var(--border); padding: 40px 24px; text-align: center; margin-top: auto; }
+  .admin-lock { 
+    color: var(--text-muted); cursor: pointer; text-decoration: none; font-size: 0.8rem; font-weight: 600; 
+    display: inline-block; margin-bottom: 24px; border: 1px solid var(--border); padding: 6px 16px; border-radius: var(--radius-sm); transition: all 0.2s;
+  }
+  .admin-lock:hover { border-color: var(--orange-primary); color: var(--orange-primary); }
+
+  .footer-contacts { 
+    text-align: left; max-width: 600px; margin: 0 auto; background: rgba(24, 24, 27, 0.5); padding: 24px; border-radius: var(--radius-lg); border: 1px solid var(--border); 
+  }
+  .info-item { margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid rgba(63, 63, 70, 0.3); }
+  .info-item:last-child { margin-bottom: 0; padding-bottom: 0; border: none; }
+  .info-title { color: var(--orange-primary); font-weight: 700; font-size: 0.8rem; display: block; margin-bottom: 4px; }
+  .info-text { color: var(--text-muted); line-height: 1.5; font-size: 0.85rem; }
+
+  @keyframes smoothFade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes slideIn { from { transform: translateY(-8px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+  /* -----------------------------------------
+     SISTEMA DE RESPONSIVIDADE ULTRA-CORRIGIDO PARA CELULAR
+  ----------------------------------------- */
+  @media (max-width: 768px) {
+    nav {
+      flex-direction: column; 
+      justify-content: center;
+      align-items: center;
+      height: 125px; /* Altura ideal para conter o título em cima e as abas embaixo */
+      padding: 12px 16px;
+      gap: 12px;
+    }
+    
+    .nav-logo-container {
+      max-width: 100%;
+      justify-content: center;
+      width: 100%;
+    }
+
+    .nav-logo {
+      font-size: 1.6rem; /* Título totalmente visível e destacado */
+      text-align: center;
+    }
+
+    /* Barra container das abas no formato Pílula (Meio círculo nas pontas externas) */
+    .nav-tabs-container {
+      width: 100%;
+      max-width: 340px; /* Evita que estique excessivamente em celulares grandes */
+      height: 42px;
+      border-radius: 100px; /* Cria os semicírculos perfeitos nas pontas esquerda e direita */
+      background: rgba(39, 39, 42, 0.8);
+      padding: 3px;
+      display: flex;
+      justify-content: space-between;
+      gap: 2px;
+    }
+
+    /* Abas internas que acompanham o formato arredondado nas extremidades */
+    .nav-tab {
+      flex: 1;
+      height: 100%;
+      padding: 0;
+      font-size: 0.8rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 100px; /* Mantém o padrão arredondado fluido por dentro */
+    }
+
+    /* Reajuste de espaçamento do topo das páginas para não sumir atrás do menu maior */
+    .page {
+      padding: 150px 16px 40px; 
+    }
+
+    .card {
+      padding: 24px 16px; 
+    }
+
+    #home .card h1 {
+      font-size: 2.1rem !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div id="toast-container"></div>
+
+<div class="modal-overlay" id="admin-modal">
+  <div class="modal-card">
+    <h3 style="font-size: 1.6rem; margin-bottom: 10px; text-align: center;">Área Restrita</h3>
+    <p style="color: var(--text-muted); font-size: 0.85rem; text-align: center; margin-bottom: 24px;">Insira os dados de acesso da equipe.</p>
+    
+    <label style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">E-mail do Administrador</label>
+    <input type="email" id="admin-email" placeholder="exemplo@email.com">
+    
+    <label style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Senha de Acesso</label>
+    <input type="password" id="admin-password" placeholder="••••••••">
+    
+    <button class="btn-main" id="btn-login-admin" style="margin-bottom: 12px;">Autenticar Entrar</button>
+    <button class="btn-main btn-outline" onclick="fecharModalAdmin()" style="margin: 0;">Cancelar</button>
+  </div>
+</div>
+
+<nav>
+  <div class="nav-logo-container">
+    <img src="logo.png" class="nav-logo-img" id="site-logo" onload="this.style.display='block'">
+    <div class="nav-logo">Ruas e <span>Patas</span></div>
+  </div>
+  <div class="nav-tabs-container">
+    <button class="nav-tab active" onclick="changePage('home')">Início</button>
+    <button class="nav-tab" onclick="changePage('denunciar')">Denunciar</button>
+    <button class="nav-tab" onclick="changePage('mapa')">Mapa</button>
+  </div>
+</nav>
+
+<div id="home" class="page active">
+  <div class="card" style="text-align: center; padding: 48px 24px;">
+    <span style="color: var(--orange-primary); font-weight: 700; font-size: 0.8rem; letter-spacing: 1px; text-transform: uppercase; display: block; margin-bottom: 5px;">Feira de Ciências 2026</span>
+    <h1 style="font-size: 2.6rem; margin-bottom: 20px; line-height: 1.2;">Projeto Ruas e Patas</h1>
+    
+    <p style="color: var(--text-muted); font-size: 0.95rem; max-width: 540px; margin: 0 auto 28px; line-height: 1.7; text-align: justify;">
+      Este sistema foi inteiramente desenvolvido pelos alunos da turma do <strong>2º Ano E.M. da Escola Eden Gabriele</strong> como projeto oficial para a <strong>Feira de Ciências de 2026</strong>. O Ruas e Patas nasceu com o propósito de unir tecnologia, sustentabilidade e cidadania, criando uma plataforma interativa onde qualquer cidadão soteropolitano pode fiscalizar, registrar e combater de forma colaborativa os descartes irregulares de lixo e os maus-tratos a animais na nossa capital.
+    </p>
+    
+    <button class="btn-main" style="max-width: 280px; margin: 0 auto;" onclick="changePage('denunciar')">Registrar Ocorrência</button>
+  </div>
+</div>
+
+<div id="denunciar" class="page">
+  <div class="card">
+    <h3 style="font-size: 1.6rem; margin-bottom: 20px;">Nova Denúncia</h3>
+    
+    <label style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">Descrição da ocorrência</label>
+    <input type="text" id="titulo" placeholder="Ex: Acúmulo de entulho, descarte irregular, abandono...">
+    
+    <div style="margin-bottom: 20px;">
+      <input type="file" id="foto-input" accept="image/*">
+      <img id="preview-img" style="width:100%; max-height: 300px; object-fit: cover; border-radius: var(--radius-md); margin-top: 16px; display: none; border: 1px solid var(--border);">
+    </div>
+    
+    <div style="margin-top: 24px;">
+      <p style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600; margin-bottom: 8px;">Definir Localização</p>
+      <div class="search-box">
+        <input type="text" id="address-input" placeholder="Digite endereço: Rua, Número, Bairro...">
+        <button class="btn-main btn-search" id="btn-buscar-endereco">Buscar</button>
+      </div>
+      <button class="btn-main btn-outline" id="btn-usar-gps">Usar meu GPS Atual</button>
+    </div>
+
+    <div id="select-location-map"></div>
+    <input type="text" id="coords" readonly placeholder="Aguardando marcação no mapa..." style="background: rgba(10, 10, 12, 0.8); border-color: var(--border); color: var(--orange-primary); text-align: center; font-family: monospace; font-size: 0.85rem;">
+    
+    <button class="btn-main" id="btn-enviar" style="margin-top: 8px; padding: 16px;">Enviar Ocorrência</button>
+  </div>
+</div>
+
+<div id="mapa" class="page">
+  <div class="card" style="padding: 16px; margin-bottom: 24px;"><div id="map"></div></div>
+  <div id="lista-denuncias" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;"></div>
+</div>
+
+<footer>
+  <span id="admin-status" class="admin-lock" onclick="handleAdminAuthClick()">Painel Administrativo</span>
+  
+  <div class="footer-contacts">
+    <h4 style="color: var(--text-main); margin-bottom: 16px; text-align: center; font-weight: 700; font-size: 0.9rem;">Canais Oficiais de Denúncia (Salvador)</h4>
+    
+    <div class="info-item">
+      <span class="info-title">🗑️ LIXO E ENTULHO NA RUA</span>
+      <p class="info-text"><b>LIMPURB:</b> Ligue para o número <b>156</b> ou use o Portal Salvador Digital.</p>
+    </div>
+
+    <div class="info-item">
+      <span class="info-title">🐾 MAUS-TRATOS / ABANDONO DE ANIMAIS</span>
+      <p class="info-text"><b>DPA:</b> (71) 3116-9151 | <b>Polícia Militar:</b> 190 | <b>DIPA:</b> 156</p>
+    </div>
+
+    <div class="info-item">
+      <span class="info-title">🌳 CRIMES AMBIENTAIS</span>
+      <p class="info-text"><b>COPAM / SEDUR:</b> (71) 3202-5600</p>
+    </div>
+  </div>
+
+  <p style="color: rgba(113, 113, 122, 0.6); margin-top: 32px; font-size: 0.75rem; font-weight: 600;">© 2026 RUAS E PATAS - TURMA 2026 2º SÉRIE EM</p>
+</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDZ4Qhu72fyb3Y80chmdIktXz95jd-0pEk",
+    authDomain: "feira-de-ciencia-2-ano.firebaseapp.com",
+    projectId: "feira-de-ciencia-2-ano",
+    storageBucket: "feira-de-ciencia-2-ano.firebasestorage.app",
+    messagingSenderId: "438114378325",
+    appId: "1:438114378325:web:36b6d475d4c9ed85eeaadc",
+    measurementId: "G-9329XTQL2Z"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const auth = getAuth(app);
+
+  let markerLat = null, markerLng = null, base64Foto = "";
+  let selectedMarker = null;
+  let isAdmin = false;
+
+  window.mapInstance = null;
+  window.selectMap = null;
+
+  function showToast(message, isError = false) {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = `toast ${isError ? 'error' : ''}`;
+    toast.innerText = message;
+    container.appendChild(toast);
+    setTimeout(() => toast.remove(), 4000);
+  }
+
+  onAuthStateChanged(auth, (user) => {
+    isAdmin = !!user;
+    document.getElementById('admin-status').innerText = isAdmin ? "Desconectar Admin" : "Painel Administrativo";
+    renderLista();
+  });
+
+  window.handleAdminAuthClick = async () => {
+    if (isAdmin) { 
+      if(confirm("Deseja fechar o modo administrador?")) await signOut(auth); 
+      return; 
+    }
+    document.getElementById('admin-modal').classList.add('active');
+  };
+
+  window.fecharModalAdmin = () => {
+    document.getElementById('admin-modal').classList.remove('active');
+    document.getElementById('admin-email').value = "";
+    document.getElementById('admin-password').value = "";
+  };
+
+  document.getElementById('btn-login-admin').onclick = async () => {
+    const email = document.getElementById('admin-email').value.trim();
+    const pass = document.getElementById('admin-password').value;
+    
+    if(!email || !pass) return showToast("Preencha todos os campos!", true);
+    
+    try { 
+      await signInWithEmailAndPassword(auth, email, pass); 
+      showToast("Modo Administrador Ativado!"); 
+      fecharModalAdmin();
+    } catch(e) { 
+      showToast("Credenciais inválidas.", true); 
+    }
+  };
+
+  const q = query(collection(db, "denuncias"), orderBy("data", "desc"));
+  onSnapshot(q, (snapshot) => {
+    window.allDenuncias = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    renderLista();
+    if(window.mapInstance) atualizarMarkers();
+  });
+
+  document.getElementById('btn-buscar-endereco').onclick = async () => {
+    const queryStr = document.getElementById('address-input').value.trim();
+    if(!queryStr) return showToast("Digite um local para pesquisar!", true);
+    showToast("Buscando endereço...");
+    try {
+      const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(queryStr + ", Salvador, Bahia")}&limit=1`);
+      const data = await response.json();
+      if(data && data.length > 0) {
+        const lat = parseFloat(data[0].lat); const lon = parseFloat(data[0].lon);
+        marcarNoMapa(lat, lon);
+        window.selectMap.setView([lat, lon], 16);
+        showToast("Marcado com sucesso!");
+      } else { showToast("Nenhum local encontrado em Salvador.", true); }
+    } catch(e) { showToast("Falha no servidor de buscas.", true); }
+  };
+
+  document.getElementById('btn-usar-gps').onclick = () => {
+    if (!navigator.geolocation) return showToast("GPS não suportado.", true);
+    showToast("Acessando satélite...");
+    navigator.geolocation.getCurrentPosition(
+      (p) => {
+        const lat = p.coords.latitude; const lon = p.coords.longitude;
+        marcarNoMapa(lat, lon);
+        window.selectMap.setView([lat, lon], 16);
+        showToast("GPS sincronizado!");
+      },
+      (err) => { showToast("Sinal do GPS falhou. Digite o endereço.", true); },
+      { enableHighAccuracy: true, timeout: 7000 }
+    );
+  };
+
+  function marcarNoMapa(lat, lng) {
+    markerLat = lat; markerLng = lng;
+    if (selectedMarker) selectedMarker.setLatLng([lat, lng]);
+    else selectedMarker = L.marker([lat, lng]).addTo(window.selectMap);
+    document.getElementById('coords').value = `LAT: ${lat.toFixed(5)} | LNG: ${lng.toFixed(5)}`;
+  }
+
+  document.getElementById('btn-enviar').onclick = async function() {
+    const t = document.getElementById('titulo').value.trim();
+    const btn = this;
+    if(!t || !markerLat) return showToast("Insira a descrição e marque o local!", true);
+    btn.disabled = true; btn.innerText = "Sincronizando Banco de Dados...";
+    try {
+      await addDoc(collection(db, "denuncias"), { t, lat: markerLat, lng: markerLng, foto: base64Foto, data: Date.now() });
+      showToast("Registro publicado com sucesso!");
+      resetForm(); changePage('mapa');
+    } catch(e) { showToast("Erro de conexão.", true); }
+    finally { btn.disabled = false; btn.innerText = "Enviar Ocorrência"; }
+  };
+
+  window.apagarDenuncia = async (id) => {
+    if(confirm("Remover permanentemente este registro?")) {
+        try { await deleteDoc(doc(db, "denuncias", id)); showToast("Registro removido!"); }
+        catch(e) { showToast("Erro ao processar remoção.", true); }
+    }
+  };
+
+  window.changePage = (id) => {
+    document.querySelectorAll('.page, .nav-tab').forEach(el => el.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+
+    const tabs = document.querySelectorAll('.nav-tab');
+    if (id === 'home') tabs[0].classList.add('active');
+    if (id === 'denunciar') { tabs[1].classList.add('active'); setTimeout(initSelectMap, 150); }
+    if (id === 'mapa') { tabs[2].classList.add('active'); setTimeout(initMainMap, 150); }
+  };
+
+  function initSelectMap() {
+    if (!window.selectMap) {
+      window.selectMap = L.map('select-location-map', { fadeAnimation: false }).setView([-12.9733, -38.5028], 12);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(window.selectMap);
+      window.selectMap.on('click', e => marcarNoMapa(e.latlng.lat, e.latlng.lng));
+    }
+    window.selectMap.invalidateSize();
+  }
+
+  function initMainMap() {
+    if (!window.mapInstance) {
+      window.mapInstance = L.map('map', { fadeAnimation: false }).setView([-12.9733, -38.5028], 11);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(window.mapInstance);
+    }
+    window.mapInstance.invalidateSize(); atualizarMarkers();
+  }
+
+  function atualizarMarkers() {
+    if(!window.mapInstance) return;
+    window.mapInstance.eachLayer(l => { if(l instanceof L.Marker) l.remove(); });
+    window.allDenuncias?.forEach(d => {
+      if(d.lat && d.lng) L.marker([d.lat, d.lng]).addTo(window.mapInstance).bindPopup(`<b>${d.t}</b>`);
+    });
+  }
+
+  function renderLista() {
+    const cont = document.getElementById('lista-denuncias');
+    if(!window.allDenuncias) return;
+    cont.innerHTML = window.allDenuncias.map(d => `
+      <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; padding: 24px; border-radius: var(--radius-md);">
+        ${isAdmin ? `<button class="btn-delete" onclick="apagarDenuncia('${d.id}')">Remover</button>` : ''}
+        <h4 style="color:var(--text-main); margin-bottom: 14px; padding-right: 70px; font-weight:600; word-break: break-word; font-size:1rem;">${d.t}</h4>
+        ${d.foto ? `<img src="${d.foto}" style="width:100%; max-height:180px; object-fit:cover; border-radius:var(--radius-sm); margin-bottom:16px; border:1px solid var(--border);">` : ''}
+        <button class="btn-main btn-outline" style="padding:10px; font-size:0.8rem; font-weight:500; margin:0;" onclick="window.mapInstance.setView([${d.lat}, ${d.lng}], 17); window.scrollTo({top:0, behavior:'smooth'});">Focar no Mapa</button>
+      </div>
+    `).join('');
+  }
+
+  document.getElementById('foto-input').onchange = (e) => {
+    const file = e.target.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas'); const MAX_WIDTH = 600;
+        let width = img.width; let height = img.height;
+        if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+        canvas.width = width; canvas.height = height;
+        const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, width, height);
+        base64Foto = canvas.toDataURL('image/jpeg', 0.5);
+        const preview = document.getElementById('preview-img');
+        preview.src = base64Foto; preview.style.display = "block";
+      };
+      img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  function resetForm() { 
+    document.getElementById('titulo').value = ""; document.getElementById('address-input').value = ""; 
+    document.getElementById('preview-img').style.display = "none"; document.getElementById('coords').value = "";
+    base64Foto = ""; markerLat = null; markerLng = null;
+    if(selectedMarker) { selectedMarker.remove(); selectedMarker = null; } 
+  }
+</script>
+</body>
+</html>
