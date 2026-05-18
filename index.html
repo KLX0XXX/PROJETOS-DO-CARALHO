@@ -227,6 +227,7 @@
     border: 1px solid rgba(239, 68, 68, 0.4); padding: 6px 14px; 
     border-radius: var(--radius-sm); cursor: pointer; 
     font-family: var(--font-body); font-weight: 600; font-size: 0.75rem; transition: background 0.2s;
+    z-index: 10;
   }
   .btn-delete:hover { background: rgba(239, 68, 68, 0.4); }
   
@@ -245,6 +246,68 @@
     background: #18181b; border: 1px solid var(--border); width: 100%; max-width: 400px;
     padding: 32px; border-radius: var(--radius-lg); box-shadow: 0 20px 50px rgba(0,0,0,0.6);
     animation: smoothFade 0.2s ease-out;
+  }
+
+  /* ESTILOS DA MINIATURA CLICÁVEL E LIGHTBOX DE IMAGEM */
+  .denuncia-thumb {
+    width: 100%; 
+    max-height: 180px; 
+    object-fit: cover; 
+    border-radius: var(--radius-sm); 
+    margin-bottom: 16px; 
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+  }
+  .denuncia-thumb:hover {
+    transform: scale(1.02);
+    border-color: var(--orange-primary);
+  }
+
+  .image-viewer-card {
+    position: relative;
+    max-width: 90vw;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .image-viewer-img {
+    max-width: 100%;
+    max-height: 75vh;
+    object-fit: contain;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+  }
+  .image-viewer-toolbar {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    display: flex;
+    gap: 10px;
+    z-index: 20010;
+  }
+  .viewer-btn {
+    background: rgba(24, 24, 27, 0.85);
+    border: 1px solid var(--border);
+    color: var(--text-main);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1.1rem;
+    transition: all 0.2s;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+  .viewer-btn:hover {
+    border-color: var(--orange-primary);
+    color: var(--orange-primary);
+    transform: scale(1.05);
   }
 
   #toast-container { position: fixed; top: 150px; right: 24px; left: 24px; margin: 0 auto; max-width: 360px; z-index: 11000; pointer-events: none; }
@@ -281,7 +344,7 @@
       flex-direction: column; 
       justify-content: center;
       align-items: center;
-      height: 125px; /* Altura ideal para conter o título em cima e as abas embaixo */
+      height: 125px; 
       padding: 12px 16px;
       gap: 12px;
     }
@@ -293,16 +356,15 @@
     }
 
     .nav-logo {
-      font-size: 1.6rem; /* Título totalmente visível e destacado */
+      font-size: 1.6rem; 
       text-align: center;
     }
 
-    /* Barra container das abas no formato Pílula (Meio círculo nas pontas externas) */
     .nav-tabs-container {
       width: 100%;
-      max-width: 340px; /* Evita que estique excessivamente em celulares grandes */
+      max-width: 340px; 
       height: 42px;
-      border-radius: 100px; /* Cria os semicírculos perfeitos nas pontas esquerda e direita */
+      border-radius: 100px; 
       background: rgba(39, 39, 42, 0.8);
       padding: 3px;
       display: flex;
@@ -310,7 +372,6 @@
       gap: 2px;
     }
 
-    /* Abas internas que acompanham o formato arredondado nas extremidades */
     .nav-tab {
       flex: 1;
       height: 100%;
@@ -320,10 +381,9 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: 100px; /* Mantém o padrão arredondado fluido por dentro */
+      border-radius: 100px; 
     }
 
-    /* Reajuste de espaçamento do topo das páginas para não sumir atrás do menu maior */
     .page {
       padding: 150px 16px 40px; 
     }
@@ -353,8 +413,29 @@
     <label style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Senha de Acesso</label>
     <input type="password" id="admin-password" placeholder="••••••••">
     
-    <button class="btn-main" id="btn-login-admin" style="margin-bottom: 12px;">Autenticar Entrar</button>
+    <button class="btn-main" id="btn-login-admin" style="margin-bottom: 12px;">Autenticar entrada</button>
     <button class="btn-main btn-outline" onclick="fecharModalAdmin()" style="margin: 0;">Cancelar</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="confirm-logout-modal">
+  <div class="modal-card" style="text-align: center;">
+    <h3 style="font-size: 1.5rem; margin-bottom: 12px; color: var(--orange-primary);">Encerrar Sessão?</h3>
+    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 24px; line-height: 1.5;">Tem certeza que deseja desativar o Modo Administrador e fechar o painel de controle?</p>
+    <div style="display: flex; gap: 12px;">
+      <button class="btn-main" id="btn-confirmar-logout" style="background: #ef4444; color: white;">Sim, Sair</button>
+      <button class="btn-main btn-outline" onclick="fecharModalLogout()" style="margin: 0; flex: 1;">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="image-viewer-modal" onclick="fecharVisualizadorImagem(event)">
+  <div class="image-viewer-card">
+    <div class="image-viewer-toolbar">
+      <button class="viewer-btn" id="btn-download-viewer" title="Baixar imagem" onclick="baixarImagemVisualizador(event)">⬇</button>
+      <button class="viewer-btn" title="Fechar visualização" onclick="fecharVisualizadorImagem(event, true)">✕</button>
+    </div>
+    <img id="viewer-full-img" src="" class="image-viewer-img" alt="Denúncia ampliada">
   </div>
 </div>
 
@@ -484,9 +565,9 @@
     renderLista();
   });
 
-  window.handleAdminAuthClick = async () => {
+  window.handleAdminAuthClick = () => {
     if (isAdmin) { 
-      if(confirm("Deseja fechar o modo administrador?")) await signOut(auth); 
+      document.getElementById('confirm-logout-modal').classList.add('active');
       return; 
     }
     document.getElementById('admin-modal').classList.add('active');
@@ -496,6 +577,51 @@
     document.getElementById('admin-modal').classList.remove('active');
     document.getElementById('admin-email').value = "";
     document.getElementById('admin-password').value = "";
+  };
+
+  window.fecharModalLogout = () => {
+    document.getElementById('confirm-logout-modal').classList.remove('active');
+  };
+
+  /* NOVAS FUNÇÕES PARA O VISUALIZADOR DE IMAGEM INTEGRA DO SITE */
+  window.abrirVisualizadorImagem = (src) => {
+    const modal = document.getElementById('image-viewer-modal');
+    const img = document.getElementById('viewer-full-img');
+    img.src = src;
+    modal.classList.add('active');
+  };
+
+  window.fecharVisualizadorImagem = (event, forcar = false) => {
+    // Só fecha se clicar no fundo opaco ou se clicar no botão X explicitamente
+    if (event.target.id === 'image-viewer-modal' || forcar) {
+      document.getElementById('image-viewer-modal').classList.remove('active');
+      document.getElementById('viewer-full-img').src = "";
+    }
+  };
+
+  window.baixarImagemVisualizador = (event) => {
+    event.stopPropagation(); // Evita acionar o fechamento do modal ao clicar no download
+    const src = document.getElementById('viewer-full-img').src;
+    if (!src) return;
+
+    const link = document.createElement('a');
+    link.href = src;
+    link.download = 'denuncia_ruas_e_patas.jpg';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToast("Download iniciado!");
+  };
+
+  document.getElementById('btn-confirmar-logout').onclick = async () => {
+    try {
+      await signOut(auth);
+      showToast("Modo Administrador Desativado.");
+    } catch(e) {
+      showToast("Erro ao desconectar.", true);
+    } finally {
+      fecharModalLogout();
+    }
   };
 
   document.getElementById('btn-login-admin').onclick = async () => {
@@ -613,6 +739,7 @@
     });
   }
 
+  /* REESTRUTURAÇÃO AQUI: Adicionado evento de clique para abrir o visualizador de imagem customizado */
   function renderLista() {
     const cont = document.getElementById('lista-denuncias');
     if(!window.allDenuncias) return;
@@ -620,7 +747,7 @@
       <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; padding: 24px; border-radius: var(--radius-md);">
         ${isAdmin ? `<button class="btn-delete" onclick="apagarDenuncia('${d.id}')">Remover</button>` : ''}
         <h4 style="color:var(--text-main); margin-bottom: 14px; padding-right: 70px; font-weight:600; word-break: break-word; font-size:1rem;">${d.t}</h4>
-        ${d.foto ? `<img src="${d.foto}" style="width:100%; max-height:180px; object-fit:cover; border-radius:var(--radius-sm); margin-bottom:16px; border:1px solid var(--border);">` : ''}
+        ${d.foto ? `<img src="${d.foto}" class="denuncia-thumb" title="Clique para ampliar" onclick="abrirVisualizadorImagem('${d.foto}')">` : ''}
         <button class="btn-main btn-outline" style="padding:10px; font-size:0.8rem; font-weight:500; margin:0;" onclick="window.mapInstance.setView([${d.lat}, ${d.lng}], 17); window.scrollTo({top:0, behavior:'smooth'});">Focar no Mapa</button>
       </div>
     `).join('');
